@@ -3,2224 +3,1347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroPath - Course Recommendation Assistant</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <title>Course Recommendation Chatbot</title>
     <style>
+        /* CSS Reset & Base Styles */
         :root {
-            --bg-dark: #0a0a12;
-            --bg-darker: #07070f;
-            --primary: #6e44ff;
-            --primary-dark: #5a2dff;
-            --accent: #00f5d4;
-            --accent-dark: #00c7a8;
-            --text-light: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --success: #00ffaa;
-            --success-dark: #00cc88;
-            --border: #2a2a3a;
-            --terminal-bg: rgba(10, 10, 20, 0.9);
-            --terminal-text: #00ffaa;
-            --terminal-cursor: #00ffaa;
-            --glow: 0 0 15px rgba(0, 245, 212, 0.5);
-            --neon-glow: 0 0 10px rgba(110, 68, 255, 0.7);
-            --border-radius: 8px;
+            --bg-dark: #121212;
+            --bg-darker: #0a0a0a;
+            --bg-darkest: #050505;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --accent-purple: #bb86fc;
+            --accent-purple-light: #d1a4ff;
+            --accent-cyan: #03dac6;
+            --accent-cyan-light: #70efde;
+            --accent-green: #39ff14;
+            --accent-green-light: #76ff7a;
+            --bubble-user: #2a2a2a;
+            --bubble-bot: #1e1e1e;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.4);
             --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --border-radius: 12px;
+            --border-radius-small: 8px;
+            --gradient-purple: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+            --gradient-green: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
         }
-    
-        body {
-            font-family: 'Courier New', monospace, 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
+        [data-theme="light"] {
+            --bg-dark: #f5f5f5;
+            --bg-darker: #e0e0e0;
+            --bg-darkest: #d0d0d0;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --bubble-user: #ffffff;
+            --bubble-bot: #eeeeee;
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        body {
             background-color: var(--bg-dark);
-            color: var(--text-light);
+            color: var(--text-primary);
             min-height: 100vh;
-            line-height: 1.6;
-        }
-    
-        #particles-js {
-            position: fixed;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-        }
-    
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-    
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            background: var(--terminal-bg);
-            border: 1px solid var(--border);
-            box-shadow: var(--glow);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+            overflow-x: hidden;
             position: relative;
-            overflow: hidden;
+            line-height: 1.6;
+            padding-top: 70px; /* Space for fixed navbar */
         }
-    
-        header::before {
-            content: '';
+
+        /* Background Shapes Animation */
+        .shape {
             position: absolute;
+            opacity: 0.08;
+            z-index: -1;
+            animation: float 15s infinite ease-in-out;
+            filter: blur(1px);
+        }
+
+        .shape.circle {
+            border-radius: 50%;
+            background: var(--gradient-purple);
+        }
+
+        .shape.triangle {
+            width: 0;
+            height: 0;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-bottom: 50px solid var(--accent-purple);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .shape.square {
+            background: var(--gradient-green);
+            transform: rotate(15deg);
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-30px) rotate(5deg);
+            }
+        }
+
+        /* Header Styles - Now Static */
+        header {
+            padding: 1rem 1.5rem;
+            background-color: var(--bg-darker);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: scanline 3s linear infinite;
+            right: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            height: 70px;
         }
-    
-        @keyframes scanline {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+
+        [data-theme="light"] header {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
-    
-        h1 {
-            margin: 0;
-            font-size: 2.5rem;
-            background: linear-gradient(to right, var(--accent), var(--primary));
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.3rem;
+            background: var(--gradient-purple);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            letter-spacing: 1px;
-            font-weight: 700;
-            text-shadow: var(--neon-glow);
-        }
-    
-        header p {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            margin-top: 5px;
-        }
-    
-        .chat-container {
-            background: var(--terminal-bg);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--border);
-            box-shadow: var(--glow);
-            overflow: hidden;
-            height: 600px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-        }
-    
-        #chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            background: rgba(0, 0, 0, 0.2);
-        }
-    
-        .message {
-            margin-bottom: 15px;
-            max-width: 80%;
-            padding: 12px 18px;
-            border-radius: var(--border-radius);
-            line-height: 1.5;
-            position: relative;
-            animation: fadeIn 0.4s ease;
-            transition: var(--transition);
-            border-left: 3px solid;
-        }
-    
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    
-        .user-message {
-            background: rgba(110, 68, 255, 0.15);
-            margin-left: auto;
-            border-left-color: var(--primary);
-        }
-    
-        .user-message:hover {
-            background: rgba(110, 68, 255, 0.25);
-            box-shadow: var(--neon-glow);
-        }
-    
-        .bot-message {
-            background: rgba(30, 30, 45, 0.7);
-            margin-right: auto;
-            border-left-color: var(--accent);
-        }
-    
-        .bot-message:hover {
-            background: rgba(30, 30, 45, 0.9);
-            box-shadow: var(--glow);
-        }
-    
-        .message-header {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
-            font-weight: bold;
+            gap: 0.5rem;
+            letter-spacing: 0.5px;
         }
-    
-        .user-avatar, .bot-avatar {
-            width: 24px;
-            height: 24px;
+
+        .logo::before {
+            content: "✦";
+            color: var(--accent-cyan);
+            font-size: 1.5rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .header-button {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1rem;
+            transition: var(--transition);
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--border-radius-small);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .header-button:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .header-button .icon {
+            font-size: 1.1rem;
+        }
+
+        .theme-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: var(--transition);
+            padding: 0.5rem;
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 8px;
-            font-size: 12px;
-            font-weight: bold;
         }
-    
-        .user-avatar {
-            background-color: var(--primary);
-            color: white;
-            box-shadow: var(--neon-glow);
+
+        .theme-toggle:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(30deg) scale(1.1);
         }
-    
-        .bot-avatar {
-            background-color: var(--accent);
-            color: var(--bg-dark);
-            box-shadow: var(--glow);
-        }
-    
-        .message-time {
-            font-size: 11px;
-            color: var(--text-muted);
-            text-align: right;
-            margin-top: 5px;
-        }
-    
-        .input-area {
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
             display: flex;
-            padding: 15px;
-            background: var(--bg-darker);
-            border-top: 1px solid var(--border);
+            flex-direction: column;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 1.5rem;
+            overflow: hidden;
             position: relative;
         }
-    
-        #user-input {
+
+        .chat-messages {
             flex: 1;
-            padding: 12px 20px;
-            background: rgba(20, 20, 35, 0.8);
-            border: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 1rem 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--bg-darker);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 10px;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-purple-light);
+        }
+
+        /* Message Bubbles */
+        .message {
+            max-width: 85%;
+            padding: 1rem 1.5rem;
             border-radius: var(--border-radius);
-            outline: none;
-            font-family: 'Courier New', monospace;
-            color: var(--text-light);
-            font-size: 16px;
+            line-height: 1.6;
+            animation: fadeIn 0.4s ease;
+            position: relative;
+            box-shadow: var(--shadow);
             transition: var(--transition);
         }
-    
-        #user-input:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 2px rgba(0, 245, 212, 0.3);
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
-    
-        #user-input::placeholder {
-            color: var(--text-muted);
+
+        .bot-message {
+            background-color: var(--bubble-bot);
+            align-self: flex-start;
+            border-bottom-left-radius: 0.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-    
-        #send-btn, #export-btn {
-            margin-left: 10px;
-            padding: 12px 20px;
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 16px;
-            transition: var(--transition);
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
+
+        [data-theme="light"] .bot-message {
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-    
-        #send-btn {
-            background: var(--primary);
-            box-shadow: var(--neon-glow);
+
+        .user-message {
+            background-color: var(--bubble-user);
+            align-self: flex-end;
+            border-bottom-right-radius: 0.2rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
-    
-        #send-btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
+
+        [data-theme="light"] .user-message {
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
-    
-        #export-btn {
-            background: var(--success);
-            box-shadow: 0 0 10px rgba(0, 255, 170, 0.5);
+
+        .bot-message::before {
+            content: "";
+            position: absolute;
+            left: -8px;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-right: 10px solid var(--bubble-bot);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
         }
-    
-        #export-btn:hover {
-            background: var(--success-dark);
-            transform: translateY(-2px);
+
+        .user-message::after {
+            content: "";
+            position: absolute;
+            right: -8px;
+            bottom: 0;
+            width: 0;
+            height: 0;
+            border-left: 10px solid var(--bubble-user);
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
         }
-    
+
+        .message-time {
+            display: block;
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.5rem;
+            text-align: right;
+        }
+
+        /* Typing Indicator */
         .typing-indicator {
             display: flex;
-            align-items: center;
-            padding: 12px 18px;
-            background: rgba(30, 30, 45, 0.7);
+            align-self: flex-start;
+            padding: 1rem 1.5rem;
+            background-color: var(--bubble-bot);
             border-radius: var(--border-radius);
-            margin-bottom: 15px;
-            width: fit-content;
-            border-left: 3px solid var(--accent);
+            margin-bottom: 1rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            align-items: center;
+            gap: 0.5rem;
         }
-    
+
+        .typing-indicator.active {
+            opacity: 1;
+        }
+
         .typing-text {
-            margin-right: 10px;
-            font-size: 14px;
-            color: var(--text-muted);
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
-    
-        .typing-dots {
-            display: flex;
-        }
-    
+
         .typing-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent);
+            width: 10px;
+            height: 10px;
+            background-color: var(--text-secondary);
             border-radius: 50%;
-            margin: 0 3px;
-            animation: bounce 1.4s infinite ease-in-out;
+            margin: 0 2px;
+            animation: typingAnimation 1.4s infinite ease-in-out;
         }
-    
-        @keyframes bounce {
-            0%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-5px); }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
         }
-    
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                background-color: var(--text-secondary);
+            }
+            30% {
+                transform: translateY(-5px);
+                background-color: var(--accent-purple);
+            }
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1.25rem 0;
+            position: relative;
+            background-color: var(--bg-dark);
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            border: none;
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            min-height: 50px;
+            max-height: 150px;
+            resize: none;
+        }
+
+        [data-theme="light"] .chat-input {
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .chat-input:focus {
+            box-shadow: 0 0 0 3px rgba(187, 134, 252, 0.3);
+            border-color: var(--accent-purple);
+        }
+
+        .send-button {
+            background: var(--gradient-purple);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            font-size: 1.2rem;
+        }
+
+        .send-button:hover {
+            background: linear-gradient(135deg, var(--accent-purple-light), var(--accent-cyan-light));
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .send-button:disabled {
+            background: var(--bg-darker);
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: var(--shadow);
+        }
+
+        /* Quick Reply Buttons */
         .quick-replies {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
+            gap: 0.75rem;
+            margin-top: 1rem;
         }
-    
+
         .quick-reply {
-            padding: 6px 12px;
-            background: rgba(0, 245, 212, 0.1);
-            border: 1px solid var(--accent);
-            border-radius: 15px;
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.6rem 1.2rem;
+            border-radius: 50px;
             cursor: pointer;
-            font-size: 13px;
             transition: var(--transition);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow);
         }
-    
+
+        [data-theme="light"] .quick-reply {
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
         .quick-reply:hover {
-            background: rgba(0, 245, 212, 0.2);
+            background-color: var(--accent-purple);
+            color: var(--bg-darkest);
             transform: translateY(-2px);
-            box-shadow: var(--glow);
+            box-shadow: var(--shadow-hover);
+            border-color: transparent;
         }
-    
+
+        /* Course Cards */
+        .courses-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.5rem;
+        }
+
         .course-card {
-            background: rgba(20, 20, 35, 0.7);
-            border: 1px solid var(--border);
+            background-color: var(--bg-darker);
             border-radius: var(--border-radius);
-            padding: 15px;
-            margin-bottom: 15px;
+            padding: 1.5rem;
             transition: var(--transition);
+            cursor: pointer;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
         }
-    
+
+        [data-theme="light"] .course-card {
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
         .course-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-3px);
-            box-shadow: var(--glow);
+            transform: translateY(-5px);
+            border-color: var(--accent-purple);
+            box-shadow: var(--shadow-hover);
         }
-    
-        .course-title {
-            font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 8px;
-            color: var(--accent);
+
+        .course-card h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 0.75rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            line-height: 1.4;
         }
-    
-        .course-description {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 10px;
+
+        .course-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 1rem;
+            flex-grow: 1;
         }
-    
+
         .course-meta {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: 13px;
-            color: var(--text-muted);
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            align-items: center;
         }
-    
-        .course-rating {
-            color: #f39c12;
+
+        .course-category {
+            background-color: rgba(3, 218, 198, 0.1);
+            color: var(--accent-cyan);
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 500;
         }
-    
-        .course-actions {
-            margin-top: 10px;
-            display: flex;
-            justify-content: flex-end;
+
+        .course-level {
+            padding: 0.3rem 0.8rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-    
-        .btn {
-            padding: 8px 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            font-size: 14px;
-            transition: var(--transition);
+
+        .course-level.beginner {
+            background-color: rgba(3, 218, 198, 0.15);
+            color: var(--accent-cyan);
         }
-    
-        .btn:hover {
-            background: var(--primary-dark);
-            transform: translateY(-2px);
-            box-shadow: var(--neon-glow);
+
+        .course-level.intermediate {
+            background-color: rgba(187, 134, 252, 0.15);
+            color: var(--accent-purple);
         }
-    
-        .btn-accent {
-            background: var(--accent);
-            color: var(--bg-dark);
+
+        .course-level.advanced {
+            background-color: rgba(57, 255, 20, 0.15);
+            color: var(--accent-green);
         }
-    
-        .btn-accent:hover {
-            background: var(--accent-dark);
-            box-shadow: var(--glow);
-        }
-    
-        /* Terminal-like cursor effect */
-        .terminal-cursor {
-            display: inline-block;
-            width: 10px;
-            height: 16px;
-            background: var(--terminal-cursor);
-            animation: blink 1s infinite;
-            vertical-align: middle;
-            margin-left: 2px;
-        }
-    
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        .quiz-container {
-        background: rgba(20, 20, 35, 0.9);
-        border-radius: var(--border-radius);
-        padding: 20px;
-        margin-bottom: 20px;
-        border: 1px solid var(--border);
-        box-shadow: var(--glow);
-    }
 
-    .quiz-question {
-        font-weight: bold;
-        margin-bottom: 15px;
-        color: var(--accent);
-        font-size: 1.1rem;
-    }
-
-    .quiz-options {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-    }
-
-    .quiz-option {
-        padding: 12px 15px;
-        background: rgba(30, 30, 45, 0.7);
-        border: 1px solid var(--border);
-        border-radius: var(--border-radius);
-        cursor: pointer;
-        transition: var(--transition);
-        position: relative;
-        overflow: hidden;
-    }
-
-    .quiz-option:hover {
-        background: rgba(110, 68, 255, 0.2);
-        border-color: var(--primary);
-        transform: translateX(5px);
-        box-shadow: var(--neon-glow);
-    }
-
-    .quiz-option::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        width: 3px;
-        background: var(--primary);
-        transform: scaleY(0);
-        transition: transform 0.3s ease;
-    }
-
-    .quiz-option:hover::before {
-        transform: scaleY(1);
-    }
-
-    .quiz-option.selected {
-        background: rgba(110, 68, 255, 0.3);
-        border-color: var(--primary);
-        box-shadow: var(--neon-glow);
-    }
-
-    .quiz-option.selected::before {
-        transform: scaleY(1);
-    }
-
-    .quiz-progress {
-        height: 4px;
-        background: var(--border);
-        border-radius: 2px;
-        margin-top: 20px;
-        overflow: hidden;
-    }
-
-    .quiz-progress-bar {
-        height: 100%;
-        background: linear-gradient(90deg, var(--primary), var(--accent));
-        width: 50%; /* Adjust based on actual progress */
-        transition: width 0.5s ease;
-    }
-
-    .quiz-instruction {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        margin-top: 15px;
-        font-style: italic;
-    }
-    
-        /* Floating action button */
-        .fab {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            background: var(--accent);
-            color: var(--bg-dark);
-            border-radius: 50%;
+        .course-duration {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
             display: flex;
             align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--glow);
+            gap: 0.3rem;
+        }
+
+        .course-link {
+            display: inline-flex;
+            margin-top: 1rem;
+            color: var(--accent-purple);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
             transition: var(--transition);
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0;
+            width: fit-content;
+        }
+
+        .course-link:hover {
+            color: var(--accent-cyan);
+            gap: 0.7rem;
+        }
+
+        .course-link::after {
+            content: "→";
+            transition: var(--transition);
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--accent-purple);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Confetti Animation */
+        .confetti {
+            position: fixed;
+            width: 12px;
+            height: 12px;
+            background-color: var(--accent-purple);
+            opacity: 0;
+            z-index: 1000;
+            animation: confettiFall 5s ease-in-out forwards;
+            border-radius: 50%;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg) scale(0.5);
+                opacity: 0;
+            }
+        }
+
+        /* Error Message */
+        .error-message {
+            color: #ff6b6b;
+            background-color: rgba(255, 107, 107, 0.1);
+            padding: 0.75rem;
+            border-radius: var(--border-radius-small);
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            border-left: 3px solid #ff6b6b;
+        }
+
+        /* Export Button */
+        .export-btn {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: var(--gradient-green);
+            color: var(--bg-darkest);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
             z-index: 100;
         }
-    
-        .fab:hover {
-            transform: scale(1.1);
+
+        .export-btn:hover {
+            background: linear-gradient(135deg, var(--accent-green-light), var(--accent-cyan-light));
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: var(--shadow-hover);
         }
-    
-        /* Responsive adjustments */
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--accent-purple);
+            color: var(--bg-darkest);
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            box-shadow: var(--shadow-hover);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+
+        /* Responsive Design */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            body {
+                padding-top: 60px;
             }
-    
+
+            header {
+                height: 60px;
+                padding: 0.75rem 1rem;
+            }
+
             .chat-container {
-                height: 80vh;
+                padding: 1rem;
             }
-    
-            .input-area {
-                flex-wrap: wrap;
-            }
-    
-            #user-input {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-    
-            #send-btn, #export-btn {
-                flex: 1;
-                margin-left: 0;
-            }
-    
+
             .message {
                 max-width: 90%;
+                padding: 0.9rem 1.2rem;
             }
-    
-            .fab {
-                bottom: 20px;
-                right: 20px;
+
+            .courses-container {
+                grid-template-columns: 1fr;
+            }
+
+            .export-btn {
+                bottom: 1rem;
+                right: 1rem;
+                padding: 0.6rem 1.2rem;
+                font-size: 0.9rem;
             }
         }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-accent {
+            color: var(--accent-purple);
+        }
+
+        .text-cyan {
+            color: var(--accent-cyan);
+        }
+
+        .text-green {
+            color: var(--accent-green);
+        }
+
+        .mt-1 {
+            margin-top: 0.5rem;
+        }
+
+        .mt-2 {
+            margin-top: 1rem;
+        }
+
+        .mb-1 {
+            margin-bottom: 0.5rem;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
     </style>
-    
-    <div id="particles-js"></div>
-    <div class="container">
-        <header>
-            <h1>NeuroPath<span class="terminal-cursor"></span></h1>
-            <p>AI-Powered Learning Assistant</p>
-        </header>
-        
-        <div class="chat-container">
-            <div id="chat-messages">
-                <!-- Initial bot message -->
-                <div class="message bot-message">
-                    <div class="message-header">
-                        <div class="bot-avatar">AI</div>
-                        <strong>NeuroPath</strong>
-                    </div>
-                    <p>Hello, user! I'm your AI-powered learning assistant. How can I help you today?</p>
-                    <div class="quick-replies">
-                        <div class="quick-reply">Find courses</div>
-                        <div class="quick-reply">Take a quiz</div>
-                        <div class="quick-reply">Get recommendations</div>
-                    </div>
-                    <div class="message-time">System: Online</div>
-                </div>
-            </div>
-            <div class="input-area">
-                <input type="text" id="user-input" placeholder="Type a command..." autocomplete="off">
-                <button id="send-btn">Send</button>
-                <button id="export-btn">Export</button>
-            </div>
+</head>
+<body>
+    <!-- Background Shapes -->
+    <div id="background-shapes"></div>
+
+    <!-- Header - Now Static -->
+    <header>
+        <div class="logo">CourseBot</div>
+        <div class="header-actions">
+            <button class="header-button" id="new-chat-btn">
+                <span class="icon">🗨️</span>
+                <span>New Chat</span>
+            </button>
+            <button class="theme-toggle" aria-label="Toggle theme">🌓</button>
+        </div>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will be inserted here by JavaScript -->
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator">
+            <span class="typing-text">CourseBot is typing</span>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <textarea class="chat-input" id="user-input" placeholder="Ask for course recommendations..." rows="1" autocomplete="off"></textarea>
+            <button class="send-button" id="send-button">➤</button>
         </div>
     </div>
-    
-    <!-- Floating action button -->
-    <div class="fab" id="scroll-to-bottom">
-        ↓
+
+    <!-- Export Button -->
+    <button class="export-btn" id="export-btn">
+        <span class="icon">📤</span>
+        <span>Export Chat</span>
+    </button>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span class="icon">✓</span>
+        <span id="notification-text">Chat exported successfully!</span>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
     <script>
-        // Course Database - Enhanced with more courses
-        const courses = [
-            // Web Development
-            {
-                id: 1,
-                name: "The Web Developer Bootcamp 2024",
-                domain: "Web Development",
-                level: "Beginner",
-                duration: "8 weeks",
-                rating: 4.8,
-                keywords: ["html", "css", "javascript", "frontend", "fullstack"],
-                description: "The most comprehensive course on web development. Become a full-stack web developer with just one course.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/the-web-developer-bootcamp/"
-            },
-            {
-                id: 2,
-                name: "HTML, CSS, and JavaScript for Web Developers",
-                domain: "Web Development",
-                level: "Beginner",
-                duration: "6 weeks",
-                rating: 4.7,
-                keywords: ["html5", "css3", "javascript", "responsive"],
-                description: "Learn the basic tools of web development: HTML, CSS and JavaScript.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/learn/html-css-javascript-for-web-developers"
-            },
-            {
-                id: 3,
-                name: "React - The Complete Guide",
-                domain: "Web Development",
-                level: "Intermediate",
-                duration: "8 weeks",
-                rating: 4.7,
-                keywords: ["react", "javascript", "frontend", "hooks"],
-                description: "Dive in and learn React.js from scratch! Learn React, Hooks, Redux, React Router, and more.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/react-the-complete-guide-incl-redux/"
-            },
-            
-            // Data Science
-            {
-                id: 4,
-                name: "Data Science Specialization",
-                domain: "Data Science",
-                level: "Intermediate",
-                duration: "10 weeks",
-                rating: 4.8,
-                keywords: ["python", "r", "statistics", "machine learning"],
-                description: "Launch your career in data science. Master data analysis, visualization, and machine learning.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/specializations/jhu-data-science"
-            },
-            {
-                id: 5,
-                name: "Python for Data Science and Machine Learning",
-                domain: "Data Science",
-                level: "Intermediate",
-                duration: "9 weeks",
-                rating: 4.6,
-                keywords: ["python", "pandas", "numpy", "scikit-learn"],
-                description: "Learn how to use NumPy, Pandas, Seaborn, Matplotlib, Scikit-Learn, and more for Machine Learning.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/python-for-data-science-and-machine-learning-bootcamp/"
-            },
-            {
-                id: 6,
-                name: "Machine Learning A-Z",
-                domain: "Data Science",
-                level: "Intermediate",
-                duration: "12 weeks",
-                rating: 4.9,
-                keywords: ["machine learning", "ai", "python", "data analysis"],
-                description: "Hands-on Python and R in data science with real-world applications of machine learning.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/machinelearning/"
-            },
-            
-            // Mobile Development
-            {
-                id: 7,
-                name: "Flutter & Dart - The Complete Guide",
-                domain: "Mobile Development",
-                level: "Intermediate",
-                duration: "10 weeks",
-                rating: 4.7,
-                keywords: ["flutter", "dart", "mobile", "cross-platform"],
-                description: "Build native mobile apps for iOS and Android using Flutter's revolutionary framework.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/learn-flutter-dart-to-build-ios-android-apps/"
-            },
-            {
-                id: 8,
-                name: "Android Kotlin Development",
-                domain: "Mobile Development",
-                level: "Intermediate",
-                duration: "8 weeks",
-                rating: 4.5,
-                keywords: ["android", "kotlin", "mobile", "app development"],
-                description: "Learn how to build professional Android apps using Kotlin and industry-standard tools.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/android-kotlin-developer/"
-            },
-            {
-                id: 9,
-                name: "iOS & Swift - The Complete iOS App Development Bootcamp",
-                domain: "Mobile Development",
-                level: "Intermediate",
-                duration: "12 weeks",
-                rating: 4.8,
-                keywords: ["ios", "swift", "apple", "mobile"],
-                description: "From beginner to iOS app developer with just one course - fully updated for iOS 15 and Swift 5.5.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/ios-13-app-development-bootcamp/"
-            },
-            
-            // Design
-            {
-                id: 10,
-                name: "UI/UX Design Specialization",
-                domain: "Design",
-                level: "Beginner",
-                duration: "12 weeks",
-                rating: 4.7,
-                keywords: ["ui", "ux", "design", "figma"],
-                description: "Design high-impact user experiences. Research, design, and prototype effective interfaces.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/specializations/ui-ux-design"
-            },
-            // Example additional courses
-            {
-                id: 21,
-                name: "Complete Python Bootcamp",
-                domain: "Programming",
-                level: "Beginner",
-                duration: "6 weeks",
-                rating: 4.6,
-                keywords: ["python", "programming", "beginners"],
-                description: "Learn Python like a Professional! Start from the basics and go all the way to creating your own applications.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/complete-python-bootcamp/"
-            },
-            {
-                id: 22,
-                name: "Advanced CSS and Sass",
-                domain: "Web Development",
-                level: "Advanced",
-                duration: "5 weeks",
-                rating: 4.7,
-                keywords: ["css", "sass", "frontend", "responsive"],
-                description: "Master advanced CSS3 and Sass with flexbox, grid, animations and more!",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/advanced-css-and-sass/"
-            },
-            {
-                id: 11,
-                name: "Google UX Design Professional Certificate",
-                domain: "Design",
-                level: "Beginner",
-                duration: "6 months",
-                rating: 4.8,
-                keywords: ["ux", "design", "research", "prototyping"],
-                description: "Get job-ready for an entry-level role in UX design with this professional certificate.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/professional-certificates/google-ux-design"
-            },
-            {
-                id: 12,
-                name: "Graphic Design Masterclass",
-                domain: "Design",
-                level: "Beginner",
-                duration: "8 weeks",
-                rating: 4.6,
-                keywords: ["photoshop", "illustrator", "design", "graphics"],
-                description: "Learn graphic design with Photoshop, Illustrator, and InDesign while designing real-world projects.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/graphic-design-masterclass-everything-you-need-to-know/"
-            },
-            
-            // Cybersecurity
-            {
-                id: 13,
-                name: "Cybersecurity Specialization",
-                domain: "Security",
-                level: "Intermediate",
-                duration: "5 months",
-                rating: 4.7,
-                keywords: ["security", "cybersecurity", "networking", "encryption"],
-                description: "Develop knowledge of cybersecurity tools and attacks to protect systems and data.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/specializations/cyber-security"
-            },
-            {
-                id: 14,
-                name: "The Complete Cyber Security Course",
-                domain: "Security",
-                level: "Intermediate",
-                duration: "12 weeks",
-                rating: 4.6,
-                keywords: ["hacking", "security", "privacy", "anonymity"],
-                description: "Become a cybersecurity specialist by learning network security, cryptography, and ethical hacking.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/the-complete-internet-security-privacy-course-volume-1/"
-            },
-            {
-                id: 15,
-                name: "Ethical Hacking from Scratch",
-                domain: "Security",
-                level: "Intermediate",
-                duration: "10 weeks",
-                rating: 4.5,
-                keywords: ["ethical hacking", "penetration testing", "security", "kali linux"],
-                description: "Learn ethical hacking from scratch with hands-on demonstrations of penetration testing.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/learn-ethical-hacking-from-scratch/"
-            },
-            
-            // DevOps
-            {
-                id: 16,
-                name: "DevOps Beginners to Advanced",
-                domain: "DevOps",
-                level: "Intermediate",
-                duration: "8 weeks",
-                rating: 4.5,
-                keywords: ["devops", "docker", "kubernetes", "ci/cd"],
-                description: "Learn DevOps from scratch with hands-on projects covering Docker, Kubernetes, and more.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/devops-essentials/"
-            },
-            {
-                id: 17,
-                name: "Docker and Kubernetes: The Complete Guide",
-                domain: "DevOps",
-                level: "Intermediate",
-                duration: "6 weeks",
-                rating: 4.7,
-                keywords: ["docker", "kubernetes", "containers", "microservices"],
-                description: "Build, test, and deploy Docker applications with Kubernetes while learning production-style workflows.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/"
-            },
-            {
-                id: 18,
-                name: "AWS Certified DevOps Engineer Professional",
-                domain: "DevOps",
-                level: "Advanced",
-                duration: "10 weeks",
-                rating: 4.6,
-                keywords: ["aws", "devops", "cloud", "automation"],
-                description: "Pass the AWS Certified DevOps Engineer Professional certification with this comprehensive course.",
-                platform: "Udemy",
-                url: "https://www.udemy.com/course/aws-certified-devops-engineer-professional-hands-on/"
-            },
-            
-            // Additional courses
-            {
-                id: 19,
-                name: "Full Stack Open 2024",
-                domain: "Web Development",
-                level: "Intermediate",
-                duration: "12 weeks",
-                rating: 4.8,
-                keywords: ["react", "node", "mongodb", "graphql"],
-                description: "Learn React, Redux, Node.js, MongoDB, GraphQL and TypeScript in one go!",
-                platform: "University of Helsinki",
-                url: "https://fullstackopen.com/en/"
-            },
-            {
-                id: 20,
-                name: "IBM Data Science Professional Certificate",
-                domain: "Data Science",
-                level: "Beginner",
-                duration: "3 months",
-                rating: 4.6,
-                keywords: ["python", "data analysis", "machine learning", "ibm"],
-                description: "Kickstart your career in data science with this professional certificate from IBM.",
-                platform: "Coursera",
-                url: "https://www.coursera.org/professional-certificates/ibm-data-science"
-            }
-        ];
-
         // DOM Elements
         const chatMessages = document.getElementById('chat-messages');
         const userInput = document.getElementById('user-input');
-        const sendBtn = document.getElementById('send-btn');
+        const sendButton = document.getElementById('send-button');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const themeToggle = document.querySelector('.theme-toggle');
+        const backgroundShapes = document.getElementById('background-shapes');
+        const newChatBtn = document.getElementById('new-chat-btn');
         const exportBtn = document.getElementById('export-btn');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
 
-        // Conversation State
-        let conversationState = {
-            step: 'welcome',
-            preferences: {
-                domain: null,
-                level: null,
-                duration: null,
-                rating: null,
-                keywords: []
-            },
-            quizAnswers: [],
-            recommendedCourses: []
-        };
+        // App State
+        let conversationHistory = [];
+        let currentTheme = 'dark';
+        let isWaitingForResponse = false;
 
-        // Natural Language Processing Helpers
-        const levelKeywords = {
-            'beginner': ['beginner', 'new', 'starting', 'intro', 'basic', 'novice', 'first time'],
-            'intermediate': ['intermediate', 'some experience', 'familiar', 'comfortable', 'moderate'],
-            'advanced': ['advanced', 'expert', 'professional', 'experienced', 'master']
-        };
+        // Configuration - Replace with your actual API key
+        const GEMINI_API_KEY = 'YOUR_API_KEY'; // Replace with your actual API key
+        const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-        const durationKeywords = {
-            'short': ['short', 'quick', 'brief', 'fast', '1-2 weeks', '2 weeks', '1 month'],
-            'medium': ['medium', 'moderate', '4 weeks', '6 weeks', '1-2 months'],
-            'long': ['long', 'extensive', '8 weeks', '10 weeks', '12 weeks', '3 months']
-        };
+        // System prompt for Gemini
+        const SYSTEM_PROMPT = `
+        You are CourseBot, an AI assistant that helps users find the perfect online courses based on their interests and skill level.
+        Your responses should be concise, friendly, and helpful. When recommending courses, provide them in a structured JSON format.
 
-        // Initialize the chat
-        document.addEventListener('DOMContentLoaded', () => {
-            // Load conversation state from session storage if available
-            const savedState = sessionStorage.getItem('eduBotState');
-            if (savedState) {
-                conversationState = JSON.parse(savedState);
-                // Re-render the conversation based on saved state
-                renderBasedOnState();
-            } else {
-                // Start new conversation
-                showWelcomeMessage();
+        Course recommendations should include:
+        - title: The course name
+        - description: A brief description (1-2 sentences)
+        - category: The subject area
+        - level: Beginner/Intermediate/Advanced
+        - duration: Estimated time to complete
+        - url: A link to the course
+
+        Always respond with valid JSON in this format:
+        {
+            "response": "Your text response to the user",
+            "courses": [
+                {
+                    "title": "Course Name",
+                    "description": "Course description",
+                    "category": "Category",
+                    "level": "Beginner/Intermediate/Advanced",
+                    "duration": "X weeks/hours",
+                    "url": "https://example.com"
+                }
+            ],
+            "quickReplies": ["Suggested", "Quick", "Replies"]
+        }
+
+        If you can't find relevant courses, just provide a helpful text response.
+        `;
+
+        // Initialize the app
+        function init() {
+            loadConversation();
+            setupEventListeners();
+            createBackgroundShapes();
+            showWelcomeMessage();
+            setupTextareaResize();
+            scrollToBottom(true); // Initial scroll to bottom
+        }
+
+        // Set up event listeners
+        function setupEventListeners() {
+            // Send message on button click
+            sendButton.addEventListener('click', sendMessage);
+
+            // Send message on Enter key (but allow Shift+Enter for new lines)
+            userInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey && !isWaitingForResponse) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // Theme toggle
+            themeToggle.addEventListener('click', toggleTheme);
+
+            // New chat button
+            newChatBtn.addEventListener('click', startNewChat);
+
+            // Export button
+            exportBtn.addEventListener('click', exportChat);
+
+            // Enable/disable send button based on input
+            userInput.addEventListener('input', () => {
+                sendButton.disabled = userInput.value.trim() === '' || isWaitingForResponse;
+            });
+
+            // Auto-scroll when new messages are added
+            const observer = new MutationObserver(scrollToBottom);
+            observer.observe(chatMessages, { childList: true, subtree: true });
+        }
+
+        // Set up auto-resize for textarea
+        function setupTextareaResize() {
+            userInput.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = (this.scrollHeight) + 'px';
+            });
+        }
+
+        // Create floating background shapes
+        function createBackgroundShapes() {
+            const colors = ['var(--accent-purple)', 'var(--accent-cyan)', 'var(--accent-green)'];
+            const shapeTypes = ['circle', 'triangle', 'square'];
+            
+            for (let i = 0; i < 20; i++) {
+                const shape = document.createElement('div');
+                const size = Math.random() * 100 + 30;
+                const type = shapeTypes[Math.floor(Math.random() * shapeTypes.length)];
+                
+                shape.className = `shape ${type}`;
+                
+                if (type === 'circle' || type === 'square') {
+                    shape.style.width = `${size}px`;
+                    shape.style.height = `${size}px`;
+                }
+                
+                shape.style.left = `${Math.random() * 100}%`;
+                shape.style.top = `${Math.random() * 100}%`;
+                shape.style.animationDelay = `${Math.random() * 20}s`;
+                shape.style.animationDuration = `${Math.random() * 15 + 10}s`;
+                
+                backgroundShapes.appendChild(shape);
+            }
+        }
+
+        // Toggle between dark and light theme
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', currentTheme);
+            themeToggle.textContent = currentTheme === 'dark' ? '🌓' : '🌒';
+            localStorage.setItem('chatbotTheme', currentTheme);
+        }
+
+        // Start a new chat
+        function startNewChat() {
+            if (conversationHistory.length > 0) {
+                if (confirm('Start a new chat? Your current conversation will be cleared.')) {
+                    conversationHistory = [];
+                    saveConversation();
+                    chatMessages.innerHTML = '';
+                    showWelcomeMessage();
+                    scrollToBottom(true);
+                }
+            }
+        }
+
+        // Export chat to text file
+        function exportChat() {
+            if (conversationHistory.length === 0) {
+                showNotification('No conversation to export', 'error');
+                return;
             }
 
-            // Initialize particles.js
-            initParticles();
-        });
+            let exportText = 'CourseBot Conversation\n=====================\n\n';
+            
+            conversationHistory.forEach(msg => {
+                const timestamp = new Date(msg.timestamp).toLocaleString();
+                exportText += `${msg.sender === 'user' ? 'You' : 'CourseBot'} (${timestamp}):\n`;
+                exportText += `${msg.content}\n\n`;
+                
+                if (msg.courses) {
+                    exportText += 'Recommended Courses:\n';
+                    msg.courses.forEach(course => {
+                        exportText += `- ${course.title} (${course.level}, ${course.duration})\n`;
+                        exportText += `  ${course.description}\n`;
+                        exportText += `  URL: ${course.url}\n\n`;
+                    });
+                }
+            });
 
-        // Event Listeners
-        sendBtn.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
+            const blob = new Blob([exportText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `coursebot-chat-${new Date().toISOString().slice(0, 10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
 
-        exportBtn.addEventListener('click', exportRecommendations);
+            showNotification('Chat exported successfully!');
+        }
 
-        // Function to send message
-        function sendMessage() {
-            const message = userInput.value.trim();
-            if (message === '') return;
+        // Show notification
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            
+            if (type === 'error') {
+                notification.style.backgroundColor = '#ff6b6b';
+            } else {
+                notification.style.backgroundColor = 'var(--accent-purple)';
+            }
+            
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
 
-            // Add user message to chat
-            addMessage(message, 'user');
+        // Load conversation from local storage
+        function loadConversation() {
+            const savedTheme = localStorage.getItem('chatbotTheme');
+            if (savedTheme) {
+                currentTheme = savedTheme;
+                document.body.setAttribute('data-theme', currentTheme);
+                themeToggle.textContent = currentTheme === 'dark' ? '🌓' : '🌒';
+            }
 
-            // Clear input
+            const savedConversation = localStorage.getItem('chatbotConversation');
+            if (savedConversation) {
+                conversationHistory = JSON.parse(savedConversation);
+                renderConversation();
+            }
+        }
+
+        // Save conversation to local storage
+        function saveConversation() {
+            localStorage.setItem('chatbotConversation', JSON.stringify(conversationHistory));
+        }
+
+        // Show welcome message
+        function showWelcomeMessage() {
+            if (conversationHistory.length === 0) {
+                const welcomeMessage = {
+                    sender: 'bot',
+                    content: "Hi there! 👋 I'm CourseBot, your personal course recommendation assistant. I can help you find the perfect courses based on your interests and skill level.",
+                    timestamp: new Date().toISOString()
+                };
+
+                const categoriesMessage = {
+                    sender: 'bot',
+                    content: "Here are some categories I can recommend courses for:",
+                    quickReplies: ["Programming", "Design", "Business", "Data Science", "Marketing"],
+                    timestamp: new Date().toISOString()
+                };
+
+                conversationHistory.push(welcomeMessage, categoriesMessage);
+                renderMessage(welcomeMessage);
+                renderMessage(categoriesMessage);
+                saveConversation();
+            }
+        }
+
+        // Render the entire conversation
+        function renderConversation() {
+            chatMessages.innerHTML = '';
+            conversationHistory.forEach(message => {
+                renderMessage(message);
+            });
+            scrollToBottom(true);
+        }
+
+        // Render a single message
+        function renderMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = `message ${message.sender}-message`;
+            
+            const timeString = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            if (message.sender === 'bot') {
+                let contentHTML = `<p>${message.content}</p>`;
+                contentHTML += `<span class="message-time">${timeString}</span>`;
+                messageElement.innerHTML = contentHTML;
+                
+                if (message.quickReplies) {
+                    const quickRepliesContainer = document.createElement('div');
+                    quickRepliesContainer.className = 'quick-replies mt-1';
+                    
+                    message.quickReplies.forEach(reply => {
+                        const button = document.createElement('button');
+                        button.className = 'quick-reply';
+                        button.textContent = reply;
+                        button.addEventListener('click', () => {
+                            userInput.value = reply;
+                            sendMessage();
+                        });
+                        quickRepliesContainer.appendChild(button);
+                    });
+                    
+                    messageElement.appendChild(quickRepliesContainer);
+                }
+                
+                if (message.courses) {
+                    const coursesContainer = document.createElement('div');
+                    coursesContainer.className = 'courses-container mt-1';
+                    
+                    message.courses.forEach(course => {
+                        const courseCard = document.createElement('div');
+                        courseCard.className = 'course-card';
+                        courseCard.innerHTML = `
+                            <h3>${course.title}</h3>
+                            <p>${course.description}</p>
+                            <div class="course-meta">
+                                <span class="course-category">${course.category}</span>
+                                <span class="course-level ${course.level.toLowerCase()}">${course.level}</span>
+                            </div>
+                            <div class="course-meta">
+                                <span class="course-duration">⏱️ ${course.duration}</span>
+                            </div>
+                            <a href="${course.url}" class="course-link" target="_blank">View Course</a>
+                        `;
+                        courseCard.addEventListener('click', () => showConfetti());
+                        coursesContainer.appendChild(courseCard);
+                    });
+                    
+                    messageElement.appendChild(coursesContainer);
+                }
+
+                if (message.error) {
+                    const errorElement = document.createElement('div');
+                    errorElement.className = 'error-message mt-1';
+                    errorElement.textContent = message.error;
+                    messageElement.appendChild(errorElement);
+                }
+            } else {
+                messageElement.innerHTML = `
+                    <p>${message.content}</p>
+                    <span class="message-time">${timeString}</span>
+                `;
+            }
+            
+            chatMessages.appendChild(messageElement);
+        }
+
+        // Show typing indicator
+        function showTypingIndicator() {
+            typingIndicator.classList.add('active');
+            scrollToBottom();
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.classList.remove('active');
+        }
+
+        // Scroll chat to bottom
+        function scrollToBottom(force = false) {
+            // Only scroll if we're near the bottom or forced
+            const threshold = 100; // pixels from bottom
+            const isNearBottom = chatMessages.scrollHeight - chatMessages.clientHeight - chatMessages.scrollTop <= threshold;
+            
+            if (force || isNearBottom) {
+                setTimeout(() => {
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }, 50);
+            }
+        }
+
+        // Send user message
+        async function sendMessage() {
+            const messageText = userInput.value.trim();
+            if (messageText === '' || isWaitingForResponse) return;
+
+            // Create and display user message
+            const userMessage = {
+                sender: 'user',
+                content: messageText,
+                timestamp: new Date().toISOString()
+            };
+            
+            conversationHistory.push(userMessage);
+            renderMessage(userMessage);
+            saveConversation();
+            
+            // Clear input and disable send button
             userInput.value = '';
-
+            userInput.style.height = 'auto';
+            sendButton.disabled = true;
+            isWaitingForResponse = true;
+            
             // Show typing indicator
             showTypingIndicator();
-
-            // Process user message after a short delay
-            setTimeout(() => {
-                processUserMessage(message);
-            }, 500);
-        }
-
-        // Function to add message to chat
-        function addMessage(text, sender, isHTML = false) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', `${sender}-message`);
             
-            if (isHTML) {
-                messageDiv.innerHTML = text;
-            } else {
-                messageDiv.textContent = text;
-            }
-            
-            chatMessages.appendChild(messageDiv);
-            scrollToBottom();
-        }
-
-        // Function to show typing indicator
-        function showTypingIndicator() {
-            const typingDiv = document.createElement('div');
-            typingDiv.classList.add('typing-indicator');
-            typingDiv.id = 'typing-indicator';
-            typingDiv.innerHTML = `
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            `;
-            chatMessages.appendChild(typingDiv);
-            scrollToBottom();
-        }
-
-        // Function to hide typing indicator
-        function hideTypingIndicator() {
-            const typingIndicator = document.getElementById('typing-indicator');
-            if (typingIndicator) {
-                typingIndicator.remove();
-            }
-            scrollToBottom();
-        }
-
-        // Function to scroll to bottom of chat
-        function scrollToBottom() {
-            setTimeout(() => {
-                chatMessages.scrollTop = chatMessages.scrollHeight;
-            }, 50);
-        }
-
-        // Function to process user message based on current conversation state
-        function processUserMessage(message) {
-            // Hide typing indicator
-            hideTypingIndicator();
-
-            // Save the conversation state
-            saveConversationState();
-
-            // Process based on current step
-            switch (conversationState.step) {
-                case 'welcome':
-                    handleWelcomeResponse(message);
-                    break;
-                case 'domain':
-                    handleDomainSelection(message);
-                    break;
-                case 'level':
-                    handleLevelSelection(message);
-                    break;
-                case 'duration':
-                    handleDurationSelection(message);
-                    break;
-                case 'rating':
-                    handleRatingSelection(message);
-                    break;
-                case 'keywords':
-                    handleKeywordsSelection(message);
-                    break;
-                case 'quiz':
-                    handleQuizResponse(message);
-                    break;
-                case 'recommendations':
-                    handleRecommendationResponse(message);
-                    break;
-                default:
-                    handleDefaultResponse(message);
-            }
-        }
-
-        // Welcome message and initial setup
-        function showWelcomeMessage() {
-            const welcomeMessage = `
-                <p>Hello! I'm NeuroPath, your personal course recommendation assistant.</p>
-                <p>I can help you find the perfect courses based on your preferences and skill level.</p>
-                <p>Would you like to:</p>
-                <div class="btn-group">
-                    <button class="btn btn-primary" onclick="selectOption('Start with a skill assessment quiz')">Start with a skill assessment quiz</button>
-                    <button class="btn" onclick="selectOption('Set preferences directly')">Set preferences directly</button>
-                </div>
-                <p class="mt-1"><small>You can also just type your answer.</small></p>
-            `;
-            addMessage(welcomeMessage, 'bot', true);
-        }
-
-        // Handle welcome response
-        function handleWelcomeResponse(message) {
-            const lowerMsg = message.toLowerCase();
-            
-            if (lowerMsg.includes('quiz') || lowerMsg.includes('assessment') || lowerMsg.includes('test')) {
-                conversationState.step = 'quiz';
-                startQuiz();
-            } else if (lowerMsg.includes('prefer') || lowerMsg.includes('direct') || lowerMsg.includes('set')) {
-                conversationState.step = 'domain';
-                askAboutDomain();
-            } else {
-                // If unclear, ask for clarification
-                const clarification = `
-                    <p>I'm not sure what you'd like to do. Would you prefer to:</p>
-                    <div class="btn-group">
-                        <button class="btn btn-primary" onclick="selectOption('Take the skill assessment quiz')">Take the skill assessment quiz</button>
-                        <button class="btn" onclick="selectOption('Set preferences directly')">Set preferences directly</button>
-                    </div>
-                `;
-                addMessage(clarification, 'bot', true);
-            }
-        }
-
-        // Quiz functionality
-        function startQuiz() {
-            conversationState.quizAnswers = [];
-            showQuizQuestion(0);
-        }
-
-        // Quiz questions
-        const quizQuestions = [
-            {
-                question: "How would you rate your programming experience?",
-                options: [
-                    "No experience (just starting out)",
-                    "Beginner (can write simple programs)",
-                    "Intermediate (comfortable with one language)",
-                    "Advanced (can build complex applications)"
-                ],
-                field: "level"
-            },
-            {
-                question: "What area are you most interested in learning about?",
-                options: [
-                    "Web Development",
-                    "Data Science",
-                    "Mobile Development",
-                    "Design",
-                    "Cybersecurity",
-                    "DevOps"
-                ],
-                field: "domain"
-            },
-            {
-                question: "How much time can you dedicate to learning each week?",
-                options: [
-                    "Less than 2 hours",
-                    "2-5 hours",
-                    "5-10 hours",
-                    "More than 10 hours"
-                ],
-                field: "duration"
-            },
-            {
-                question: "Do you prefer courses with hands-on projects?",
-                options: [
-                    "Yes, definitely",
-                    "Somewhat",
-                    "Not particularly",
-                    "No preference"
-                ],
-                field: "projects"
-            }
-        ];
-
-        // Show quiz question
-        function showQuizQuestion(index) {
-            if (index >= quizQuestions.length) {
-                // Quiz completed
-                conversationState.step = 'recommendations';
-                recommendCourses();
-                return;
-            }
-
-            const question = quizQuestions[index];
-            let optionsHTML = question.options.map(opt => 
-                `<div class="quiz-option" onclick="selectQuizOption(${index}, '${opt}')">${opt}</div>`
-            ).join('');
-
-            const questionHTML = `
-                <div class="quiz-question">
-                    <p><strong>Question ${index + 1}/${quizQuestions.length}:</strong> ${question.question}</p>
-                    <div class="quiz-options">
-                        ${optionsHTML}
-                    </div>
-                    <p class="mt-1"><small>You can type your answer or select an option above.</small></p>
-                </div>
-            `;
-
-            addMessage(questionHTML, 'bot', true);
-        }
-
-        // Handle quiz response (text input)
-        function handleQuizResponse(message) {
-            const currentQuestionIndex = conversationState.quizAnswers.length;
-            if (currentQuestionIndex >= quizQuestions.length) {
-                conversationState.step = 'recommendations';
-                recommendCourses();
-                return;
-            }
-
-            const question = quizQuestions[currentQuestionIndex];
-            let matchedOption = null;
-
-            // Try to match the user's input to one of the options
-            const lowerMsg = message.toLowerCase();
-            for (const option of question.options) {
-                if (lowerMsg.includes(option.toLowerCase().split(' ')[0])) {
-                    matchedOption = option;
-                    break;
-                }
-            }
-
-            // For level question, use NLP to detect level
-            if (question.field === 'level' && !matchedOption) {
-                matchedOption = detectLevelFromText(message);
-            }
-
-            // For domain question, try to match domains
-            if (question.field === 'domain' && !matchedOption) {
-                const domains = [...new Set(courses.map(c => c.domain))];
-                for (const domain of domains) {
-                    if (lowerMsg.includes(domain.toLowerCase())) {
-                        matchedOption = domain;
-                        break;
-                    }
-                }
-            }
-
-            // For duration question, try to detect duration preference
-            if (question.field === 'duration' && !matchedOption) {
-                matchedOption = detectDurationFromText(message);
-                if (matchedOption) {
-                    // Map the detected duration to quiz options
-                    if (matchedOption === "Less than 2 hours") matchedOption = "Less than 2 hours";
-                    else if (matchedOption === "2-5 hours") matchedOption = "2-5 hours";
-                    else if (matchedOption === "5-10 hours") matchedOption = "5-10 hours";
-                    else if (matchedOption === "More than 10 hours") matchedOption = "More than 10 hours";
-                }
-            }
-
-            if (matchedOption) {
-                // If we matched an option, proceed as if they clicked it
-                selectQuizOption(currentQuestionIndex, matchedOption);
-            } else {
-                // If no match, show the question again with options
-                addMessage("I'm not sure I understand your answer. Please select one of the options:", 'bot');
-                showQuizQuestion(currentQuestionIndex);
-            }
-        }
-
-        // Detect skill level from text
-        function detectLevelFromText(text) {
-            const lowerText = text.toLowerCase();
-            for (const [level, keywords] of Object.entries(levelKeywords)) {
-                if (keywords.some(kw => lowerText.includes(kw))) {
-                    return level.charAt(0).toUpperCase() + level.slice(1);
-                }
-            }
-            return null;
-        }
-
-        // Detect duration preference from text
-        function detectDurationFromText(text) {
-            const lowerText = text.toLowerCase();
-            
-            // Check for specific hour numbers
-            const hourMatch = lowerText.match(/(\d+)\s*hour/);
-            if (hourMatch) {
-                const hours = parseInt(hourMatch[1]);
-                if (hours <= 2) return "Less than 2 hours";
-                if (hours <= 5) return "2-5 hours";
-                if (hours <= 10) return "5-10 hours";
-                return "More than 10 hours";
-            }
-            
-            // Check for specific week numbers
-            const weekMatch = lowerText.match(/(\d+)\s*week/);
-            if (weekMatch) {
-                const weeks = parseInt(weekMatch[1]);
-                if (weeks <= 4) return "Less than 2 hours";
-                if (weeks <= 6) return "2-5 hours";
-                if (weeks <= 10) return "5-10 hours";
-                return "More than 10 hours";
-            }
-            
-            // Check for duration keywords
-            for (const [durationType, keywords] of Object.entries(durationKeywords)) {
-                if (keywords.some(kw => lowerText.includes(kw))) {
-                    if (durationType === 'short') return "Less than 2 hours";
-                    if (durationType === 'medium') return "2-5 hours";
-                    if (durationType === 'long') return "More than 10 hours";
-                }
-            }
-            
-            return null;
-        }
-
-        // Handle quiz option selection
-        function selectQuizOption(questionIndex, option) {
-            // Highlight selected option
-            const quizOptions = document.querySelectorAll('.quiz-option');
-            quizOptions.forEach((opt, idx) => {
-                if (opt.textContent === option) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
-
-            // Save answer
-            const question = quizQuestions[questionIndex];
-            conversationState.quizAnswers.push({
-                question: question.question,
-                answer: option,
-                field: question.field
-            });
-
-            // Update preferences based on answer
-            if (question.field === 'level') {
-                if (option.includes('No experience')) conversationState.preferences.level = 'Beginner';
-                else if (option.includes('Beginner')) conversationState.preferences.level = 'Beginner';
-                else if (option.includes('Intermediate')) conversationState.preferences.level = 'Intermediate';
-                else if (option.includes('Advanced')) conversationState.preferences.level = 'Advanced';
-            } 
-            else if (question.field === 'domain') {
-                conversationState.preferences.domain = option;
-            }
-            else if (question.field === 'duration') {
-                if (option.includes('Less than 2')) conversationState.preferences.duration = '2 weeks';
-                else if (option.includes('2-5')) conversationState.preferences.duration = '4 weeks';
-                else if (option.includes('5-10')) conversationState.preferences.duration = '6 weeks';
-                else if (option.includes('More than 10')) conversationState.preferences.duration = '8 weeks';
-            }
-
-            // Show next question after delay
-            setTimeout(() => {
-                showQuizQuestion(questionIndex + 1);
-            }, 800);
-        }
-
-        // Domain selection
-        function askAboutDomain() {
-            const domains = [...new Set(courses.map(course => course.domain))];
-            let buttonsHTML = domains.map(domain => 
-                `<button class="btn" onclick="selectOption('${domain}')">${domain}</button>`
-            ).join('');
-
-            const message = `
-                <p>What domain are you interested in? You can choose from:</p>
-                <div class="btn-group">
-                    ${buttonsHTML}
-                </div>
-                <p class="mt-1"><small>Examples: "I'm interested in web development" or "Data science"</small></p>
-            `;
-            addMessage(message, 'bot', true);
-        }
-
-        function handleDomainSelection(message) {
-            const domains = [...new Set(courses.map(course => course.domain))];
-            const lowerMsg = message.toLowerCase();
-            
-            // Try to find a matching domain
-            let selectedDomain = null;
-            for (const domain of domains) {
-                if (lowerMsg.includes(domain.toLowerCase())) {
-                    selectedDomain = domain;
-                    break;
-                }
-            }
-            
-            // Special cases for common synonyms
-            if (!selectedDomain) {
-                if (lowerMsg.includes('web') || lowerMsg.includes('frontend') || lowerMsg.includes('backend')) {
-                    selectedDomain = 'Web Development';
-                } else if (lowerMsg.includes('data') || lowerMsg.includes('analysis') || lowerMsg.includes('analytics')) {
-                    selectedDomain = 'Data Science';
-                } else if (lowerMsg.includes('ai') || lowerMsg.includes('machine learning') || lowerMsg.includes('ml')) {
-                    selectedDomain = 'Artificial Intelligence';
-                } else if (lowerMsg.includes('mobile') || lowerMsg.includes('app') || lowerMsg.includes('ios') || lowerMsg.includes('android')) {
-                    selectedDomain = 'Mobile Development';
-                }
-            }
-
-            if (selectedDomain) {
-                addMessage(`Great! You've selected ${selectedDomain}.`, 'bot');
-                conversationState.preferences.domain = selectedDomain;
-                conversationState.step = 'level';
-                askAboutLevel();
-            } else {
-                addMessage("I'm not sure I understand which domain you're interested in. Please select one from the list:", 'bot');
-                askAboutDomain();
-            }
-        }
-
-        // Level selection
-        function askAboutLevel() {
-            const levels = ['Beginner', 'Intermediate', 'Advanced'];
-            let buttonsHTML = levels.map(level => 
-                `<button class="btn" onclick="selectOption('${level}')">${level}</button>`
-            ).join('');
-
-            const message = `
-                <p>What's your current skill level?</p>
-                <div class="btn-group">
-                    ${buttonsHTML}
-                </div>
-                <p class="mt-1"><small>Examples: "I'm a beginner" or "I have some experience"</small></p>
-            `;
-            addMessage(message, 'bot', true);
-        }
-
-        function handleLevelSelection(message) {
-            const detectedLevel = detectLevelFromText(message);
-            
-            if (detectedLevel) {
-                addMessage(`Got it! You're at ${detectedLevel} level.`, 'bot');
-                conversationState.preferences.level = detectedLevel;
-                conversationState.step = 'duration';
-                askAboutDuration();
-            } else {
-                addMessage("I'm not sure about your skill level. Please select from Beginner, Intermediate, or Advanced.", 'bot');
-                askAboutLevel();
-            }
-        }
-
-        // Duration selection
-        function askAboutDuration() {
-            const durations = ['2 weeks', '4 weeks', '6 weeks', '8 weeks', '10 weeks', '12 weeks'];
-            let buttonsHTML = durations.map(duration => 
-                `<button class="btn" onclick="selectOption('${duration}')">${duration}</button>`
-            ).join('');
-
-            const message = `
-                <p>What duration are you looking for in a course?</p>
-                <div class="btn-group">
-                    ${buttonsHTML}
-                </div>
-                <p class="mt-1"><small>Examples: "About a month" or "2-3 months"</small></p>
-            `;
-            addMessage(message, 'bot', true);
-        }
-
-        function handleDurationSelection(message) {
-            const lowerMsg = message.toLowerCase();
-            let selectedDuration = null;
-            
-            // Check for specific hour numbers
-            const hourMatch = lowerMsg.match(/(\d+)\s*hour/);
-            if (hourMatch) {
-                const hours = parseInt(hourMatch[1]);
-                if (hours <= 2) selectedDuration = '2 weeks';
-                else if (hours <= 5) selectedDuration = '4 weeks';
-                else if (hours <= 10) selectedDuration = '6 weeks';
-                else selectedDuration = '8 weeks';
-            }
-            
-            // Check for specific week numbers
-            const weekMatch = lowerMsg.match(/(\d+)\s*week/);
-            if (weekMatch && !selectedDuration) {
-                const weeks = parseInt(weekMatch[1]);
-                if (weeks <= 4) selectedDuration = '4 weeks';
-                else if (weeks <= 6) selectedDuration = '6 weeks';
-                else if (weeks <= 8) selectedDuration = '8 weeks';
-                else if (weeks <= 10) selectedDuration = '10 weeks';
-                else selectedDuration = '12 weeks';
-            }
-            
-            // Check for month numbers
-            const monthMatch = lowerMsg.match(/(\d+)\s*month/);
-            if (monthMatch && !selectedDuration) {
-                const months = parseInt(monthMatch[1]);
-                if (months <= 1) selectedDuration = '4 weeks';
-                else if (months <= 2) selectedDuration = '8 weeks';
-                else selectedDuration = '12 weeks';
-            }
-            
-            // Check for duration keywords
-            if (!selectedDuration) {
-                if (lowerMsg.includes('short') || lowerMsg.includes('quick') || lowerMsg.includes('1 month') || lowerMsg.includes('few weeks')) {
-                    selectedDuration = '4 weeks';
-                } else if (lowerMsg.includes('medium') || lowerMsg.includes('couple months') || lowerMsg.includes('2 month')) {
-                    selectedDuration = '8 weeks';
-                } else if (lowerMsg.includes('long') || lowerMsg.includes('extensive') || lowerMsg.includes('3 month') || lowerMsg.includes('semester')) {
-                    selectedDuration = '12 weeks';
-                }
-            }
-
-            if (selectedDuration) {
-                addMessage(`I'll look for courses around ${selectedDuration} long.`, 'bot');
-                conversationState.preferences.duration = selectedDuration;
-                conversationState.step = 'rating';
-                askAboutRating();
-            } else {
-                addMessage("I'm not sure about the duration you prefer. Please select from the options or specify a time frame.", 'bot');
-                askAboutDuration();
-            }
-        }
-
-        // Rating selection
-        function askAboutRating() {
-            const message = `
-                <p>How important is course rating to you? (1-5)</p>
-                <div class="rating-scale">
-                    <div class="rating-option" onclick="selectRating(1)">1</div>
-                    <div class="rating-option" onclick="selectRating(2)">2</div>
-                    <div class="rating-option" onclick="selectRating(3)">3</div>
-                    <div class="rating-option" onclick="selectRating(4)">4</div>
-                    <div class="rating-option" onclick="selectRating(5)">5</div>
-                </div>
-                <p class="mt-1"><small>1 = Not important, 5 = Very important</small></p>
-                <p class="mt-1"><small>You can also type your answer (e.g., "very important" or "3")</small></p>
-            `;
-            addMessage(message, 'bot', true);
-        }
-
-        function selectRating(rating) {
-            // Highlight selected rating
-            const ratingOptions = document.querySelectorAll('.rating-option');
-            ratingOptions.forEach((opt, idx) => {
-                if (idx + 1 === rating) {
-                    opt.classList.add('selected');
-                } else {
-                    opt.classList.remove('selected');
-                }
-            });
-
-            conversationState.preferences.rating = rating;
-            
-            // Move to next step after delay
-            setTimeout(() => {
-                conversationState.step = 'keywords';
-                askAboutKeywords();
-            }, 800);
-        }
-
-        function handleRatingSelection(message) {
-            const lowerMsg = message.toLowerCase();
-            let rating = null;
-            
-            // Check for explicit numbers
-            const numMatch = lowerMsg.match(/\d+/);
-            if (numMatch) {
-                rating = parseInt(numMatch[0]);
-                if (rating >= 1 && rating <= 5) {
-                    selectRating(rating);
-                    return;
-                }
-            }
-            
-            // Check for text descriptions
-            if (lowerMsg.includes('not important') || lowerMsg.includes('doesn\'t matter') || lowerMsg.includes('any rating')) {
-                rating = 1;
-            } else if (lowerMsg.includes('somewhat important') || lowerMsg.includes('kind of important')) {
-                rating = 3;
-            } else if (lowerMsg.includes('very important') || lowerMsg.includes('extremely important') || lowerMsg.includes('high rating')) {
-                rating = 5;
-            } else if (lowerMsg.includes('important')) {
-                rating = 4;
-            }
-            
-            if (rating) {
-                selectRating(rating);
-            } else {
-                addMessage("I'm not sure how important course ratings are to you. Please select a number between 1 and 5.", 'bot');
-                askAboutRating();
-            }
-        }
-
-        // Keywords selection
-        function askAboutKeywords() {
-            // Get all unique keywords from courses
-            const allKeywords = [];
-            courses.forEach(course => {
-                course.keywords.forEach(keyword => {
-                    if (!allKeywords.includes(keyword)) {
-                        allKeywords.push(keyword);
-                    }
-                });
-            });
-
-            // Show first 10 keywords as buttons (for simplicity)
-            const shownKeywords = allKeywords.slice(0, 10);
-            let buttonsHTML = shownKeywords.map(keyword => 
-                `<button class="btn" onclick="addKeyword('${keyword}')">${keyword}</button>`
-            ).join('');
-
-            const message = `
-                <p>Any specific topics or technologies you're interested in? (optional)</p>
-                <p>You can add multiple keywords:</p>
-                <div class="btn-group">
-                    ${buttonsHTML}
-                </div>
-                <div class="mt-1">
-                    <button class="btn btn-accent" onclick="finishKeywords()">Done with keywords</button>
-                </div>
-                <div id="selected-keywords" class="mt-1"></div>
-                <p class="mt-1"><small>Examples: "I'm interested in python and react" or "machine learning"</small></p>
-            `;
-            addMessage(message, 'bot', true);
-        }
-
-        function addKeyword(keyword) {
-            if (!conversationState.preferences.keywords.includes(keyword)) {
-                conversationState.preferences.keywords.push(keyword);
+            try {
+                // Call Gemini API
+                const botResponse = await callGeminiAPI(messageText);
                 
-                // Update UI to show selected keywords
-                const selectedKeywordsDiv = document.getElementById('selected-keywords');
-                if (selectedKeywordsDiv) {
-                    selectedKeywordsDiv.innerHTML = `
-                        <p><strong>Selected keywords:</strong> ${conversationState.preferences.keywords.join(', ')}</p>
-                    `;
-                }
-                scrollToBottom();
-            }
-        }
-
-        function finishKeywords() {
-            conversationState.step = 'recommendations';
-            recommendCourses();
-        }
-
-        function handleKeywordsSelection(message) {
-            // Extract potential keywords from the message
-            const lowerMsg = message.toLowerCase();
-            const allKeywords = [];
-            courses.forEach(course => {
-                course.keywords.forEach(keyword => {
-                    if (!allKeywords.includes(keyword)) {
-                        allKeywords.push(keyword);
-                    }
-                });
-            });
-            
-            // Find matching keywords
-            const matchedKeywords = allKeywords.filter(keyword => 
-                lowerMsg.includes(keyword.toLowerCase())
-            );
-            
-            if (matchedKeywords.length > 0) {
-                // Add all matched keywords
-                matchedKeywords.forEach(keyword => {
-                    if (!conversationState.preferences.keywords.includes(keyword)) {
-                        conversationState.preferences.keywords.push(keyword);
-                    }
-                });
+                // Add to conversation history
+                conversationHistory.push(botResponse);
+                renderMessage(botResponse);
+                saveConversation();
+            } catch (error) {
+                console.error("API Error:", error);
                 
-                // Show confirmation
-                const confirmation = `
-                    <p>I've added these keywords: ${matchedKeywords.join(', ')}</p>
-                    <p>Current keywords: ${conversationState.preferences.keywords.join(', ')}</p>
-                    <p>Would you like to add more keywords?</p>
-                    <div class="btn-group">
-                        <button class="btn" onclick="selectOption('Yes')">Yes</button>
-                        <button class="btn btn-accent" onclick="finishKeywords()">No, recommend courses</button>
-                    </div>
-                `;
-                addMessage(confirmation, 'bot', true);
-            } else {
-                // No keywords found
-                const noKeywords = `
-                    <p>I didn't recognize any specific keywords in your message. Would you like to:</p>
-                    <div class="btn-group">
-                        <button class="btn" onclick="selectOption('Try again')">Try entering different keywords</button>
-                        <button class="btn btn-accent" onclick="finishKeywords()">Skip keywords and recommend courses</button>
-                    </div>
-                `;
-                addMessage(noKeywords, 'bot', true);
-            }
-        }
-        function explainRecommendationStrategy() {
-    const explanation = `
-        <p>I found these courses by:</p>
-        <ul>
-            <li>Prioritizing ${conversationState.preferences.domain || 'all domains'}</li>
-            <li>Including ${conversationState.preferences.level ? conversationState.preferences.level.toLowerCase() : 'all'} level courses</li>
-            <li>Focusing on ${conversationState.preferences.duration || 'various'} durations</li>
-            ${conversationState.preferences.keywords.length > 0 ? 
-                `<li>Matching your keywords: ${conversationState.preferences.keywords.join(', ')}</li>` : ''}
-        </ul>
-    `;
-    addMessage(explanation, 'bot', true);
-}
-
-        // Course recommendation
-        // Enhanced course recommendation algorithm
-function recommendCourses() {
-    showTypingIndicator();
-    
-    setTimeout(() => {
-        hideTypingIndicator();
-        
-        // Start with all courses
-        let recommended = [...courses];
-        let fallbackCourses = [];
-        
-        // Domain filter (always apply)
-        if (conversationState.preferences.domain) {
-            recommended = recommended.filter(course => 
-                course.domain === conversationState.preferences.domain
-            );
-            // Prepare domain fallback (top rated in domain)
-            fallbackCourses = courses.filter(c => 
-                c.domain === conversationState.preferences.domain
-            ).sort((a, b) => b.rating - a.rating);
-        }
-        
-        // Level filter (with flexibility)
-        if (conversationState.preferences.level) {
-            const levelMap = {
-                'Beginner': ['Beginner'],
-                'Intermediate': ['Intermediate', 'Beginner'],
-                'Advanced': ['Advanced', 'Intermediate']
-            };
-            const allowedLevels = levelMap[conversationState.preferences.level] || [];
-            recommended = recommended.filter(course => 
-                allowedLevels.includes(course.level)
-            );
-        }
-        
-        // Duration filter (with range flexibility)
-        if (conversationState.preferences.duration) {
-            const prefDuration = parseInt(conversationState.preferences.duration);
-            const durationRange = {
-                min: Math.max(1, prefDuration - 2),
-                max: prefDuration + 4
-            };
-            recommended = recommended.filter(course => {
-                const courseDuration = parseInt(course.duration);
-                return courseDuration >= durationRange.min && 
-                       courseDuration <= durationRange.max;
-            });
-        }
-        
-        // Rating filter (with flexibility)
-        if (conversationState.preferences.rating) {
-            const minRating = Math.max(3.5, 
-                conversationState.preferences.rating >= 4 ? 4.0 : 
-                conversationState.preferences.rating >= 3 ? 3.5 : 3.0
-            );
-            recommended = recommended.filter(course => course.rating >= minRating);
-        }
-        
-        // Keywords filter (optional)
-        if (conversationState.preferences.keywords.length > 0) {
-            const keywordMatches = recommended.map(course => {
-                const matchCount = course.keywords.filter(keyword => 
-                    conversationState.preferences.keywords.includes(keyword)
-                ).length;
-                return { course, matchCount };
-            }).filter(item => item.matchCount > 0);
-            
-            if (keywordMatches.length > 0) {
-                // Sort by number of keyword matches
-                recommended = keywordMatches
-                    .sort((a, b) => b.matchCount - a.matchCount)
-                    .map(item => item.course);
-            }
-        }
-        
-        // If no courses match, implement fallback strategy
-        if (recommended.length === 0) {
-            // First fallback: Relax level and duration constraints
-            recommended = [...courses];
-            if (conversationState.preferences.domain) {
-                recommended = recommended.filter(course => 
-                    course.domain === conversationState.preferences.domain
-                );
-            }
-            
-            // Second fallback: Use top-rated courses in domain
-            if (recommended.length === 0 && fallbackCourses.length > 0) {
-                recommended = fallbackCourses.slice(0, 5);
-            }
-            
-            // Final fallback: Show top-rated courses overall
-            if (recommended.length === 0) {
-                recommended = courses
-                    .sort((a, b) => b.rating - a.rating)
-                    .slice(0, 5);
-            }
-        }
-        
-        // Limit to 5 courses and save
-        recommended = recommended.slice(0, 5);
-        conversationState.recommendedCourses = recommended;
-        
-        // Show recommendations or error message
-        if (recommended.length > 0) {
-            showRecommendations(recommended);
-            
-            // Explain if we used fallback strategy
-            if (recommended.some(c => !conversationState.preferences.domain || 
-                c.domain !== conversationState.preferences.domain)) {
-                addMessage("I've expanded the search to find relevant courses for you.", 'bot');
-            }
-        } else {
-            addMessage("I couldn't find any courses matching your criteria. Let's try adjusting your preferences.", 'bot');
-            conversationState.step = 'welcome';
-            setTimeout(showWelcomeMessage, 1000);
-        }
-        
-        saveConversationState();
-    }, 1500);
-}
-
-        // Show course recommendations
-        function showRecommendations(courses) {
-    let coursesHTML = courses.map(course => `
-        <div class="course-card">
-            <div class="course-title">
-                <a href="${course.url}" target="_blank">${course.name}</a>
-            </div>
-            <div class="course-meta">
-                <span>${course.domain}</span>
-                <span>${course.level}</span>
-                <span>${course.duration}</span>
-                <span class="course-rating">★ ${course.rating}</span>
-                <span>${course.platform}</span>
-            </div>
-            <p>${course.description}</p>
-            <div class="course-actions">
-                <button class="btn" onclick="showSimilarCourses(${course.id})">Show Similar</button>
-                <button class="btn btn-accent" onclick="window.open('${course.url}', '_blank')">Visit Course</button>
-            </div>
-        </div>
-    `).join('');
-    
-    const messageHTML = `
-        <p>Here are some courses that match your preferences:</p>
-        ${coursesHTML}
-        <div class="mt-2">
-            <p>Would you like to:</p>
-            <div class="btn-group">
-                <button class="btn" onclick="selectOption('Start over')">Start over</button>
-                <button class="btn" onclick="selectOption('Adjust preferences')">Adjust preferences</button>
-            </div>
-        </div>
-    `;
-    
-    addMessage(messageHTML, 'bot', true);
-}
-
-        // Show similar courses
-        function showSimilarCourses(courseId) {
-    const originalCourse = courses.find(c => c.id === courseId);
-    if (!originalCourse) return;
-    
-    const similarCourses = courses.filter(course => {
-        if (course.id === courseId) return false;
-        
-        const matchingKeywords = course.keywords.filter(keyword => 
-            originalCourse.keywords.includes(keyword)
-        );
-        
-        return matchingKeywords.length >= 2;
-    }).slice(0, 3);
-    
-    if (similarCourses.length > 0) {
-        let coursesHTML = similarCourses.map(course => `
-            <div class="course-card">
-                <div class="course-title">
-                    <a href="${course.url}" target="_blank">${course.name}</a>
-                </div>
-                <div class="course-meta">
-                    <span>${course.domain}</span>
-                    <span>${course.level}</span>
-                    <span>${course.duration}</span>
-                    <span class="course-rating">★ ${course.rating}</span>
-                    <span>${course.platform}</span>
-                </div>
-                <p>${course.description}</p>
-                <div class="course-actions">
-                    <button class="btn btn-accent" onclick="window.open('${course.url}', '_blank')">Visit Course</button>
-                </div>
-            </div>
-        `).join('');
-        
-        const messageHTML = `
-            <p>Here are some courses similar to "<a href="${originalCourse.url}" target="_blank">${originalCourse.name}</a>":</p>
-            ${coursesHTML}
-        `;
-        
-        addMessage(messageHTML, 'bot', true);
-    } else {
-        addMessage(`I couldn't find any courses similar to "${originalCourse.name}".`, 'bot');
-    }
-}
-
-        // Handle recommendation response
-        function handleRecommendationResponse(message) {
-            const lowerMsg = message.toLowerCase();
-            
-            if (lowerMsg.includes('start over') || lowerMsg.includes('reset') || lowerMsg.includes('begin again')) {
-                // Reset conversation
-                conversationState = {
-                    step: 'welcome',
-                    preferences: {
-                        domain: null,
-                        level: null,
-                        duration: null,
-                        rating: null,
-                        keywords: []
-                    },
-                    quizAnswers: [],
-                    recommendedCourses: []
+                const errorMessage = {
+                    sender: 'bot',
+                    content: "I'm having trouble connecting to the course database right now.",
+                    error: "Error: " + (error.message || "Failed to get recommendations"),
+                    timestamp: new Date().toISOString(),
+                    quickReplies: ["Try again", "Different query", "Help"]
                 };
-                saveConversationState();
-                showWelcomeMessage();
-            } else if (lowerMsg.includes('adjust') || lowerMsg.includes('preference') || lowerMsg.includes('change')) {
-                // Determine which preference to adjust based on message
-                if (lowerMsg.includes('domain') || lowerMsg.includes('subject') || lowerMsg.includes('topic')) {
-                    conversationState.step = 'domain';
-                    askAboutDomain();
-                } else if (lowerMsg.includes('level') || lowerMsg.includes('skill') || lowerMsg.includes('experience')) {
-                    conversationState.step = 'level';
-                    askAboutLevel();
-                } else if (lowerMsg.includes('duration') || lowerMsg.includes('length') || lowerMsg.includes('time')) {
-                    conversationState.step = 'duration';
-                    askAboutDuration();
-                } else if (lowerMsg.includes('rating') || lowerMsg.includes('quality') || lowerMsg.includes('review')) {
-                    conversationState.step = 'rating';
-                    askAboutRating();
-                } else if (lowerMsg.includes('keyword') || lowerMsg.includes('topic') || lowerMsg.includes('specific')) {
-                    conversationState.step = 'keywords';
-                    askAboutKeywords();
-                } else {
-                    // General preference adjustment
-                    const adjustMessage = `
-                        <p>Which preference would you like to adjust?</p>
-                        <div class="btn-group">
-                            <button class="btn" onclick="selectOption('Domain')">Domain</button>
-                            <button class="btn" onclick="selectOption('Skill level')">Skill level</button>
-                            <button class="btn" onclick="selectOption('Duration')">Duration</button>
-                            <button class="btn" onclick="selectOption('Rating importance')">Rating importance</button>
-                            <button class="btn" onclick="selectOption('Keywords')">Keywords</button>
-                        </div>
-                    `;
-                    addMessage(adjustMessage, 'bot', true);
-                }
-            } else {
-                // Unrecognized response
-                const optionsMessage = `
-                    <p>Would you like to start over or adjust your preferences?</p>
-                    <div class="btn-group">
-                        <button class="btn" onclick="selectOption('Start over')">Start over</button>
-                        <button class="btn" onclick="selectOption('Adjust preferences')">Adjust preferences</button>
-                    </div>
-                `;
-                addMessage(optionsMessage, 'bot', true);
-            }
-        }
-
-        // Handle default response
-        function handleDefaultResponse(message) {
-            // Try to understand the intent
-            const lowerMsg = message.toLowerCase();
-            
-            if (lowerMsg.includes('hello') || lowerMsg.includes('hi') || lowerMsg.includes('hey')) {
-                addMessage("Hello again! How can I help you with course recommendations?", 'bot');
-            } else if (lowerMsg.includes('thank') || lowerMsg.includes('thanks')) {
-                addMessage("You're welcome! Is there anything else I can help you with?", 'bot');
-            } else if (lowerMsg.includes('help') || lowerMsg.includes('support')) {
-                addMessage("I can help you find courses based on your preferences. Would you like to start with a skill assessment or set preferences directly?", 'bot');
-            } else {
-                addMessage("I'm not sure how to respond to that. Please select one of the options provided or ask about course recommendations.", 'bot');
-            }
-            
-            renderBasedOnState();
-        }
-
-        // Helper function to select options via buttons
-        function selectOption(option) {
-            // Simulate user selecting the option
-            addMessage(option, 'user');
-            showTypingIndicator();
-            
-            // Process after a short delay
-            setTimeout(() => {
+                
+                conversationHistory.push(errorMessage);
+                renderMessage(errorMessage);
+                saveConversation();
+            } finally {
                 hideTypingIndicator();
-                processUserMessage(option);
-            }, 500);
-        }
-
-        // Render based on current state
-        function renderBasedOnState() {
-            switch (conversationState.step) {
-                case 'welcome':
-                    showWelcomeMessage();
-                    break;
-                case 'domain':
-                    askAboutDomain();
-                    break;
-                case 'level':
-                    askAboutLevel();
-                    break;
-                case 'duration':
-                    askAboutDuration();
-                    break;
-                case 'rating':
-                    askAboutRating();
-                    break;
-                case 'keywords':
-                    askAboutKeywords();
-                    break;
-                case 'quiz':
-                    const currentQuestionIndex = conversationState.quizAnswers.length;
-                    if (currentQuestionIndex < quizQuestions.length) {
-                        showQuizQuestion(currentQuestionIndex);
-                    } else {
-                        conversationState.step = 'recommendations';
-                        recommendCourses();
-                    }
-                    break;
-                case 'recommendations':
-                    if (conversationState.recommendedCourses.length > 0) {
-                        showRecommendations(conversationState.recommendedCourses);
-                    } else {
-                        recommendCourses();
-                    }
-                    break;
+                isWaitingForResponse = false;
             }
         }
 
-        // Save conversation state to session storage
-        function saveConversationState() {
-            sessionStorage.setItem('eduBotState', JSON.stringify(conversationState));
-        }
+        // Call Gemini API
+        async function callGeminiAPI(userMessage) {
+            // Prepare the conversation history for the API
+            const messages = [
+                {
+                    role: "user",
+                    parts: [{ text: SYSTEM_PROMPT }]
+                },
+                {
+                    role: "model",
+                    parts: [{ text: "Understood. I will provide course recommendations in the specified JSON format." }]
+                }
+            ];
 
-        // Export recommendations as PDF
-        function exportRecommendations() {
-            if (conversationState.recommendedCourses.length === 0) {
-                addMessage("No recommendations to export yet. Please complete the conversation first.", 'bot');
-                return;
-            }
-
-            showTypingIndicator();
-            
-            setTimeout(() => {
-                hideTypingIndicator();
-                
-                // Create a new PDF document
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
-                // Add title
-                doc.setFontSize(22);
-                doc.setTextColor(40, 53, 147);
-                doc.text('Your Personalized Course Recommendations', 105, 20, { align: 'center' });
-                
-                // Add subtitle with date
-                doc.setFontSize(12);
-                doc.setTextColor(100);
-                doc.text(`Generated on ${new Date().toLocaleDateString()} by EduBot`, 105, 28, { align: 'center' });
-                
-                // Add user preferences section
-                doc.setFontSize(16);
-                doc.setTextColor(40, 53, 147);
-                doc.text('Your Preferences', 20, 40);
-                
-                doc.setFontSize(12);
-                doc.setTextColor(0);
-                let yPosition = 50;
-                
-                if (conversationState.preferences.domain) {
-                    doc.text(`• Domain: ${conversationState.preferences.domain}`, 20, yPosition);
-                    yPosition += 7;
-                }
-                
-                if (conversationState.preferences.level) {
-                    doc.text(`• Skill Level: ${conversationState.preferences.level}`, 20, yPosition);
-                    yPosition += 7;
-                }
-                
-                if (conversationState.preferences.duration) {
-                    doc.text(`• Duration: ${conversationState.preferences.duration}`, 20, yPosition);
-                    yPosition += 7;
-                }
-                
-                if (conversationState.preferences.rating) {
-                    doc.text(`• Minimum Rating: ${'★'.repeat(conversationState.preferences.rating)}`, 20, yPosition);
-                    yPosition += 7;
-                }
-                
-                if (conversationState.preferences.keywords.length > 0) {
-                    doc.text(`• Keywords: ${conversationState.preferences.keywords.join(', ')}`, 20, yPosition);
-                    yPosition += 10;
-                } else {
-                    yPosition += 3;
-                }
-                
-                // Add recommended courses section
-                doc.setFontSize(16);
-                doc.setTextColor(40, 53, 147);
-                doc.text('Recommended Courses', 20, yPosition);
-                yPosition += 10;
-                
-                doc.setFontSize(12);
-                doc.setTextColor(0);
-                
-                // Add each recommended course
-                conversationState.recommendedCourses.forEach((course, index) => {
-                    if (yPosition > 250) {
-                        doc.addPage();
-                        yPosition = 20;
-                    }
-                    
-                    doc.setFontSize(14);
-                    doc.setTextColor(30, 30, 30);
-                    doc.text(`${index + 1}. ${course.name}`, 20, yPosition);
-                    yPosition += 8;
-                    
-                    doc.setFontSize(10);
-                    doc.setTextColor(100);
-                    
-                    // Course metadata
-                    let meta = [];
-                    if (course.platform) meta.push(`Platform: ${course.platform}`);
-                    if (course.level) meta.push(`Level: ${course.level}`);
-                    if (course.duration) meta.push(`Duration: ${course.duration}`);
-                    if (course.rating) meta.push(`Rating: ${'★'.repeat(Math.round(course.rating))}`);
-                    
-                    doc.text(meta.join(' | '), 20, yPosition);
-                    yPosition += 6;
-                    
-                    // Course description
-                    doc.setFontSize(11);
-                    doc.setTextColor(50);
-                    const splitDescription = doc.splitTextToSize(course.description, 170);
-                    doc.text(splitDescription, 20, yPosition);
-                    yPosition += splitDescription.length * 6 + 5;
-                    
-                    // Course URL
-                    doc.setFontSize(10);
-                    doc.setTextColor(30, 100, 200);
-                    doc.textWithLink('Course Link →', 20, yPosition, { url: course.url });
-                    yPosition += 10;
-                    
-                    // Add separator
-                    doc.setDrawColor(200);
-                    doc.line(20, yPosition, 190, yPosition);
-                    yPosition += 10;
+            // Add the conversation history (last 5 messages for context)
+            const recentHistory = conversationHistory.slice(-5);
+            recentHistory.forEach(msg => {
+                messages.push({
+                    role: msg.sender === 'user' ? 'user' : 'model',
+                    parts: [{ text: msg.content }]
                 });
-                
-                // Save the PDF
-                doc.save('EduBot_Course_Recommendations.pdf');
-                
-                addMessage("Your recommendations have been exported as a PDF file!", 'bot');
-            }, 1000);
-        }
+            });
 
-        // Initialize particles.js
-        function initParticles() {
-            // Inline configuration for particles.js
-            const particlesConfig = {
-                "particles": {
-                    "number": {
-                        "value": 80,
-                        "density": {
-                            "enable": true,
-                            "value_area": 800
-                        }
-                    },
-                    "color": {
-                        "value": "#ffffff"
-                    },
-                    "shape": {
-                        "type": "circle",
-                        "stroke": {
-                            "width": 0,
-                            "color": "#000000"
-                        },
-                        "polygon": {
-                            "nb_sides": 5
-                        }
-                    },
-                    "opacity": {
-                        "value": 0.5,
-                        "random": false,
-                        "anim": {
-                            "enable": false,
-                            "speed": 1,
-                            "opacity_min": 0.1,
-                            "sync": false
-                        }
-                    },
-                    "size": {
-                        "value": 3,
-                        "random": true,
-                        "anim": {
-                            "enable": false,
-                            "speed": 40,
-                            "size_min": 0.1,
-                            "sync": false
-                        }
-                    },
-                    "line_linked": {
-                        "enable": true,
-                        "distance": 150,
-                        "color": "#ffffff",
-                        "opacity": 0.4,
-                        "width": 1
-                    },
-                    "move": {
-                        "enable": true,
-                        "speed": 2,
-                        "direction": "none",
-                        "random": false,
-                        "straight": false,
-                        "out_mode": "out",
-                        "bounce": false,
-                        "attract": {
-                            "enable": false,
-                            "rotateX": 600,
-                            "rotateY": 1200
-                        }
-                    }
-                },
-                "interactivity": {
-                    "detect_on": "canvas",
-                    "events": {
-                        "onhover": {
-                            "enable": true,
-                            "mode": "grab"
-                        },
-                        "onclick": {
-                            "enable": true,
-                            "mode": "push"
-                        },
-                        "resize": true
-                    },
-                    "modes": {
-                        "grab": {
-                            "distance": 140,
-                            "line_linked": {
-                                "opacity": 1
-                            }
-                        },
-                        "bubble": {
-                            "distance": 400,
-                            "size": 40,
-                            "duration": 2,
-                            "opacity": 8,
-                            "speed": 3
-                        },
-                        "repulse": {
-                            "distance": 200,
-                            "duration": 0.4
-                        },
-                        "push": {
-                            "particles_nb": 4
-                        },
-                        "remove": {
-                            "particles_nb": 2
-                        }
-                    }
-                },
-                "retina_detect": true
+            // Add the current user message
+            messages.push({
+                role: "user",
+                parts: [{ text: userMessage }]
+            });
+
+            const requestBody = {
+                contents: messages,
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 2000
+                }
             };
 
-            // Load particles.js with our config
-            particlesJS('particles-js', particlesConfig);
+            const response = await fetch(GEMINI_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            });
+
+            if (!response.ok) {
+                throw new Error(`API request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            // Extract the response text
+            let responseText = '';
+            try {
+                responseText = data.candidates[0].content.parts[0].text;
+                
+                // Try to parse the JSON response
+                let parsedResponse;
+                try {
+                    // Sometimes the response includes markdown code blocks
+                    const jsonMatch = responseText.match(/```json\n([\s\S]*?)\n```/);
+                    if (jsonMatch) {
+                        parsedResponse = JSON.parse(jsonMatch[1]);
+                    } else {
+                        parsedResponse = JSON.parse(responseText);
+                    }
+                } catch (e) {
+                    // If parsing fails, treat the whole response as text
+                    parsedResponse = {
+                        response: responseText,
+                        courses: null,
+                        quickReplies: ["More options", "Different category", "Thanks!"]
+                    };
+                }
+
+                // Create the bot response object
+                return {
+                    sender: 'bot',
+                    content: parsedResponse.response || responseText,
+                    courses: parsedResponse.courses || null,
+                    quickReplies: parsedResponse.quickReplies || ["More options", "Different category", "Thanks!"],
+                    timestamp: new Date().toISOString()
+                };
+            } catch (e) {
+                console.error("Error parsing API response:", e);
+                return {
+                    sender: 'bot',
+                    content: responseText || "Here are some course recommendations based on your query:",
+                    timestamp: new Date().toISOString(),
+                    quickReplies: ["More options", "Different category", "Thanks!"]
+                };
+            }
         }
+
+        // Show confetti animation
+        function showConfetti() {
+            for (let i = 0; i < 100; i++) {
+                createConfettiPiece();
+            }
+        }
+
+        // Create a single confetti piece
+        function createConfettiPiece() {
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            
+            // Random properties
+            const colors = ['var(--accent-purple)', 'var(--accent-cyan)', 'var(--accent-green)'];
+            const color = colors[Math.floor(Math.random() * colors.length)];
+            const size = Math.random() * 12 + 6;
+            const left = Math.random() * window.innerWidth;
+            const animationDuration = Math.random() * 3 + 2;
+            const delay = Math.random() * 2;
+            
+            confetti.style.backgroundColor = color;
+            confetti.style.width = `${size}px`;
+            confetti.style.height = `${size}px`;
+            confetti.style.left = `${left}px`;
+            confetti.style.animationDuration = `${animationDuration}s`;
+            confetti.style.animationDelay = `${delay}s`;
+            
+            document.body.appendChild(confetti);
+            
+            // Remove confetti after animation
+            setTimeout(() => {
+                confetti.remove();
+            }, (animationDuration + delay) * 1000);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
